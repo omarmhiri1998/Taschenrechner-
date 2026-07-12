@@ -1,4 +1,4 @@
-const CACHE_NAME = "my-app-v1";
+const CACHE_NAME = "taschenrechner-v2";
 
 const FILES_TO_CACHE = [
     "./",
@@ -7,22 +7,38 @@ const FILES_TO_CACHE = [
     "./dyn.js",
     "./240144.jpg",
     "./manifest.json",
-    "./icons/1001.png",
-    "./icons/1001.png"
+    "./icons/icon-192.jpeg",
+    "./icons/icon-512.jpeg"
 ];
 
 self.addEventListener("install", (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => cache.addAll(FILES_TO_CACHE))
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(FILES_TO_CACHE);
+        })
     );
+
+    self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames
+                    .filter((name) => name !== CACHE_NAME)
+                    .map((name) => caches.delete(name))
+            );
+        })
+    );
+
+    self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
     event.respondWith(
-        caches.match(event.request)
-            .then((cachedFile) => {
-                return cachedFile || fetch(event.request);
-            })
+        caches.match(event.request).then((cachedFile) => {
+            return cachedFile || fetch(event.request);
+        })
     );
 });
